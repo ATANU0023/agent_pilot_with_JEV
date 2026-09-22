@@ -1,0 +1,35 @@
+{
+  "name": "agent_pilot",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 8000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "playground": "tsx src/playground/fanout.ts",
+    "playground:choice": "tsx src/playground/choice.ts",
+    "playground:score": "tsx src/playground/score.ts",
+    "playground:noul": "tsx src/playground/noul.ts",
+    "playground:fanout": "tsx src/playground/fanout.ts",
+    "test:agent": "tsx src/test_agent.ts"
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "^0.6.0",
+    "dotenv": "^18.0.3",
+    "groq-sdk": "^1.6.0",
+    "lucide-react": "^1.47.0",
+    "next": "16.3.6",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.6",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}
