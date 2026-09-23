@@ -182,3 +182,187 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* Cyber-minimal Glow & Animation Tokens */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.9;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+  }
+  50% {
+    opacity: 0.4;
+    box-shadow: 0 0 4px rgba(56, 189, 248, 0.2);
+  }
+}
+
+@keyframes livePulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+@keyframes shimmerSweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.dot-pulse {
+  animation: livePulse 1.8s infinite ease-in-out;
+}
+
+.dot-cyan {
+  background: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+}
+
+.dot-purple {
+  background: #c084fc;
+  box-shadow: 0 0 8px rgba(192, 132, 252, 0.6);
+}
+
+.dot-amber {
+  background: #fbbf24;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+}
+
+.dot-rose {
+  background: #fb7185;
+  box-shadow: 0 0 8px rgba(251, 113, 133, 0.6);
+}
+
+.pill-cyan {
+  background: rgba(56, 189, 248, 0.09);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.25);
+}
+
+/* Timeline Styles */
+.step-card {
+  position: relative;
+  background: rgba(18, 21, 28, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
+}
+
+.step-card:hover {
+  background: rgba(22, 26, 35, 0.85);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.step-card.active-step {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(14, 25, 42, 0.7);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+}
+
+.step-card.completed-step {
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.shimmer-active {
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.05) 0%, rgba(56, 189, 248, 0.18) 50%, rgba(56, 189, 248, 0.05) 100%);
+  background-size: 200% 100%;
+  animation: shimmerSweep 2.2s infinite linear;
+}
+
+/* Big Input Box Glow */
+.agent-input-container {
+  background: rgba(15, 17, 23, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.agent-input-container:focus-within {
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 12px 35px -8px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(59, 130, 246, 0.3), 0 0 24px rgba(59, 130, 246, 0.12);
+}
+
+.textarea-big {
+  width: 100%;
+  min-height: 52px;
+  max-height: 160px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f5f6f8;
+  font-size: 0.96rem;
+  line-height: 1.55;
+  font-family: inherit;
+  resize: none;
+  padding: 10px 14px 6px;
+}
+
+.textarea-big::placeholder {
+  color: rgba(154, 160, 170, 0.55);
+  font-size: 0.92rem;
+}
+
+/* Pixel Art Avatar & Employed Specialist Styles */
+.pixel-avatar {
+  image-rendering: pixelated;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  object-fit: cover;
+}
+
+.pixel-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.specialist-card {
+  background: rgba(18, 22, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  gap: 12px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.specialist-card:hover {
+  background: rgba(23, 29, 41, 0.9);
+  border-color: rgba(56, 189, 248, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
+}
+
+/* Tab Switcher in Sidebar */
+.flow-tab-btn {
+  flex: 1;
+  padding: 6px 12px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justifyContent: center;
+  gap: 6px;
+}
+
+.flow-tab-btn.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.flow-tab-btn:hover:not(.active) {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+}

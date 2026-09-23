@@ -4,7 +4,7 @@ import { agentRunner } from "@/services/agent/agentRunner";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { message, role, environment } = body;
+    const { message, role, environment, forcedTool } = body;
 
     if (!message || typeof message !== "string") {
       return NextResponse.json(
@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
       userPrompt: message,
       role: role || "user",
       environment: environment || "production",
+      forcedTool,
     });
 
     return NextResponse.json(result, { status: 200 });

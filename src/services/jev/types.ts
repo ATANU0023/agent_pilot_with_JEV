@@ -42,6 +42,7 @@ export interface AgentContext {
   userId?: string;
   role?: string;
   environment?: string;
+  forcedTool?: ToolType;
   conversationHistory?: Array<{ role: string; content: string }>;
 }
 
@@ -51,6 +52,18 @@ export type ExecutionStatus =
   | "PENDING_HUMAN_APPROVAL"
   | "BLOCKED_HIGH_RISK"
   | "ERROR";
+
+export interface ExecutionStep {
+  id: string;
+  name: string;
+  category: "ingestion" | "cognitive" | "policy" | "execution" | "output";
+  status: "pending" | "running" | "completed" | "warning" | "error";
+  description: string;
+  why?: string;
+  durationMs?: number;
+  badge?: string;
+  details?: Record<string, unknown>;
+}
 
 export interface AgentRunResult {
   status: ExecutionStatus;
@@ -66,11 +79,17 @@ export interface AgentRunResult {
     modelTier: ModelTier;
     content: string;
     latencyMs: number;
+    usage?: {
+      promptTokens: number;
+      completionTokens: number;
+      totalTokens: number;
+    };
   };
   approvalRequest?: {
     reason: string;
     riskScore: number;
     approvalProbability: number;
   };
+  steps?: ExecutionStep[];
   totalLatencyMs: number;
 }
