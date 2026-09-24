@@ -119,8 +119,7 @@ body {
 }
 
 .dot-green {
-  background: #34d399;
-  box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+  background: #10b981;
 }
 
 /* Primary Action Button */
@@ -211,29 +210,25 @@ body {
 }
 
 .dot-cyan {
-  background: #38bdf8;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+  background: #0284c7;
 }
 
 .dot-purple {
-  background: #c084fc;
-  box-shadow: 0 0 8px rgba(192, 132, 252, 0.6);
+  background: #7c3aed;
 }
 
 .dot-amber {
-  background: #fbbf24;
-  box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+  background: #d97706;
 }
 
 .dot-rose {
-  background: #fb7185;
-  box-shadow: 0 0 8px rgba(251, 113, 133, 0.6);
+  background: #dc2626;
 }
 
 .pill-cyan {
-  background: rgba(56, 189, 248, 0.09);
+  background: rgba(2, 132, 199, 0.09);
   color: #38bdf8;
-  border-color: rgba(56, 189, 248, 0.25);
+  border-color: rgba(2, 132, 199, 0.3);
 }
 
 /* Timeline Styles */
@@ -366,3 +361,36 @@ body {
   color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.03);
 }
+
+/* Fullscreen Graph Modal Styles */
+.graph-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 5, 8, 0.88);
+  backdrop-filter: blur(18px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.18s ease-out;
+}
+
+.graph-modal-container {
+  width: 96vw;
+  max-width: 1250px;
+  height: 90vh;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+

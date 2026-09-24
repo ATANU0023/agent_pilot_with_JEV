@@ -45,6 +45,7 @@ import {
   Zap,
 } from "lucide-react";
 import { AgentRunResult, ExecutionStep, ToolType } from "../services/jev/types";
+import ExecutionGraphView from "../components/ExecutionGraphView";
 
 interface Message {
   id: string;
@@ -184,7 +185,8 @@ export default function AgentPilotApp() {
   const [loading, setLoading] = useState(false);
   const [liveElapsedMs, setLiveElapsedMs] = useState(0);
   const [showStepsSidebar, setShowStepsSidebar] = useState(true);
-  const [sidebarTab, setSidebarTab] = useState<"flow" | "roster">("flow");
+  const [sidebarTab, setSidebarTab] = useState<"graph" | "flow" | "roster">("graph");
+  const [isGraphModalOpen, setIsGraphModalOpen] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [pinnedSpecialist, setPinnedSpecialist] = useState<EmployedSpecialist | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
@@ -248,7 +250,7 @@ export default function AgentPilotApp() {
     setLoading(true);
     setLiveElapsedMs(0);
     setSelectedMessageId(null);
-    setSidebarTab("flow"); // Switch back to flow when query runs
+    setSidebarTab("graph"); // Switch to interactive graph when query runs
 
     try {
       const res = await fetch("/api/agent/run", {
@@ -726,17 +728,53 @@ export default function AgentPilotApp() {
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              gap: "4px",
-                              fontSize: "0.7rem",
-                              color: "var(--text-muted)",
+                              gap: "8px",
                             }}
                           >
-                            <span>{isExpanded ? "Hide" : "Details"}</span>
-                            {isExpanded ? (
-                              <ChevronDown style={{ width: "12px", height: "12px" }} />
-                            ) : (
-                              <ChevronRight style={{ width: "12px", height: "12px" }} />
-                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedMessageId(msg.id);
+                                setShowStepsSidebar(true);
+                                setSidebarTab("graph");
+                              }}
+                              className="btn-ghost"
+                              style={{
+                                padding: "2px 8px",
+                                fontSize: "0.68rem",
+                                gap: "4px",
+                                borderColor:
+                                  selectedMessageId === msg.id && sidebarTab === "graph"
+                                    ? "rgba(56, 189, 248, 0.5)"
+                                    : "rgba(56, 189, 248, 0.25)",
+                                background:
+                                  selectedMessageId === msg.id && sidebarTab === "graph"
+                                    ? "rgba(56, 189, 248, 0.12)"
+                                    : "transparent",
+                                color: "#38bdf8",
+                              }}
+                              title="Inspect cognitive decision graph for this message"
+                            >
+                              <Layers style={{ width: "11px", height: "11px" }} />
+                              <span>Decision Tree</span>
+                            </button>
+
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                fontSize: "0.7rem",
+                                color: "var(--text-muted)",
+                              }}
+                            >
+                              <span>{isExpanded ? "Hide" : "Details"}</span>
+                              {isExpanded ? (
+                                <ChevronDown style={{ width: "12px", height: "12px" }} />
+                              ) : (
+                                <ChevronRight style={{ width: "12px", height: "12px" }} />
+                              )}
+                            </div>
                           </div>
                         </div>
 
@@ -1102,7 +1140,9 @@ export default function AgentPilotApp() {
                       justifyContent: "center",
                     }}
                   >
-                    {sidebarTab === "flow" ? (
+                    {sidebarTab === "graph" ? (
+                      <Layers style={{ width: "14px", height: "14px", color: "#38bdf8" }} />
+                    ) : sidebarTab === "flow" ? (
                       <Activity style={{ width: "14px", height: "14px", color: "#38bdf8" }} />
                     ) : (
                       <Users style={{ width: "14px", height: "14px", color: "#10b981" }} />
@@ -1110,10 +1150,18 @@ export default function AgentPilotApp() {
                   </div>
                   <div>
                     <h3 style={{ fontSize: "0.88rem", fontWeight: 600, letterSpacing: "-0.01em" }}>
-                      {sidebarTab === "flow" ? "Cognitive Reasoning Flow" : "Employed Specialists (6)"}
+                      {sidebarTab === "graph"
+                        ? "Cognitive Decision Tree"
+                        : sidebarTab === "flow"
+                        ? "Cognitive Reasoning Flow"
+                        : "Employed Specialists (6)"}
                     </h3>
                     <div style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
-                      {sidebarTab === "flow" ? "Step-by-step thinking & decision trace" : "Pixel-art tools on active duty"}
+                      {sidebarTab === "graph"
+                        ? "Interactive tree graph & node inspector"
+                        : sidebarTab === "flow"
+                        ? "Step-by-step thinking & decision trace"
+                        : "Pixel-art tools on active duty"}
                     </div>
                   </div>
                 </div>
@@ -1178,21 +1226,41 @@ export default function AgentPilotApp() {
                 }}
               >
                 <button
+                  onClick={() => setSidebarTab("graph")}
+                  className={`flow-tab-btn ${sidebarTab === "graph" ? "active" : ""}`}
+                >
+                  <Layers style={{ width: "13px", height: "13px" }} />
+                  <span>Tree Graph</span>
+                </button>
+                <button
                   onClick={() => setSidebarTab("flow")}
                   className={`flow-tab-btn ${sidebarTab === "flow" ? "active" : ""}`}
                 >
                   <Activity style={{ width: "13px", height: "13px" }} />
-                  <span>Cognitive Flow</span>
+                  <span>Linear Flow</span>
                 </button>
                 <button
                   onClick={() => setSidebarTab("roster")}
                   className={`flow-tab-btn ${sidebarTab === "roster" ? "active" : ""}`}
                 >
                   <Briefcase style={{ width: "13px", height: "13px" }} />
-                  <span>Employed Tools (6)</span>
+                  <span>Specialists (6)</span>
                 </button>
               </div>
             </div>
+
+            {/* TAB 0: INTERACTIVE TREE GRAPH VIEW */}
+            {sidebarTab === "graph" && (
+              <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                <ExecutionGraphView
+                  result={activeResult || null}
+                  loading={loading}
+                  liveElapsedMs={liveElapsedMs}
+                  onRunSample={(p) => handleSend(p)}
+                  onToggleExpandModal={() => setIsGraphModalOpen(true)}
+                />
+              </div>
+            )}
 
             {/* TAB 1: COGNITIVE FLOW TRACE */}
             {sidebarTab === "flow" && (
@@ -1815,6 +1883,71 @@ export default function AgentPilotApp() {
           </aside>
         )}
       </div>
+
+      {/* Fullscreen Interactive Decision Tree Modal */}
+      {isGraphModalOpen && (
+        <div className="graph-modal-backdrop" onClick={() => setIsGraphModalOpen(false)}>
+          <div className="graph-modal-container" onClick={(e) => e.stopPropagation()}>
+            <div
+              style={{
+                padding: "12px 18px",
+                borderBottom: "1px solid var(--border)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                background: "rgba(15, 18, 26, 0.9)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "6px",
+                    background: "rgba(56, 189, 248, 0.15)",
+                    border: "1px solid rgba(56, 189, 248, 0.3)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Layers style={{ color: "#38bdf8", width: "16px", height: "16px" }} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: "0.95rem", fontWeight: 600, letterSpacing: "-0.01em" }}>
+                    Cognitive Decision Tree & Node Telemetry Inspector
+                  </h3>
+                  <div style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
+                    Deep interactive trace of prompt modification, Jev multi-headed classification, tool registry lookup, and execution
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsGraphModalOpen(false)}
+                className="btn-ghost"
+                style={{ padding: "5px 12px", gap: "6px" }}
+              >
+                <X style={{ width: "14px", height: "14px" }} />
+                <span>Close</span>
+              </button>
+            </div>
+
+            <div style={{ flex: 1, overflow: "hidden" }}>
+              <ExecutionGraphView
+                result={activeResult || null}
+                loading={loading}
+                liveElapsedMs={liveElapsedMs}
+                onRunSample={(p) => {
+                  setIsGraphModalOpen(false);
+                  handleSend(p);
+                }}
+                isExpandedModal={true}
+                onToggleExpandModal={() => setIsGraphModalOpen(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -20,7 +20,7 @@ export class CalculatorTool implements ITool {
 
   async execute(input: string): Promise<ToolResult> {
     // 1. Convert conversational math terms into operators
-    let expr = input
+    const expr = input
       .toLowerCase()
       .replace(/\bplus\b/g, "+")
       .replace(/\bminus\b/g, "-")

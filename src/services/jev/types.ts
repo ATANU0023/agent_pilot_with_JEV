@@ -56,7 +56,7 @@ export type ExecutionStatus =
 export interface ExecutionStep {
   id: string;
   name: string;
-  category: "ingestion" | "cognitive" | "policy" | "execution" | "output";
+  category: "ingestion" | "cognitive" | "policy" | "registry" | "execution" | "output";
   status: "pending" | "running" | "completed" | "warning" | "error";
   description: string;
   why?: string;

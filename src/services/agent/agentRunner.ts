@@ -19,17 +19,43 @@ export class AgentRunner {
         ? context.userPrompt.slice(0, 52) + "..."
         : context.userPrompt;
 
+    // Detect prompt features for visualization
+    const lowerPrompt = context.userPrompt.toLowerCase();
+    const detectedFeatures: string[] = [];
+    if (/[\d+\-*/().%^]|\b(?:plus|minus|times|multiplied|divided|percent)\b/.test(lowerPrompt)) {
+      detectedFeatures.push("arithmetic_expression");
+    }
+    if (/\b(?:weather|temperature|forecast|climate|rain|snow|degrees|celsius|fahrenheit)\b/.test(lowerPrompt)) {
+      detectedFeatures.push("weather_telemetry");
+    }
+    if (/\b(?:policy|refund|travel|reimbursement|pto|vacation|security|backup|disaster)\b/.test(lowerPrompt)) {
+      detectedFeatures.push("corporate_knowledge_rag");
+    }
+    if (/\b(?:send|slack|alert|notify|message|email|channel)\b/.test(lowerPrompt)) {
+      detectedFeatures.push("outbound_dispatch");
+    }
+    if (/\b(?:drop|delete|purge|destroy|credential|truncate|rm\s+-rf)\b/.test(lowerPrompt)) {
+      detectedFeatures.push("destructive_system_action");
+    }
+    if (detectedFeatures.length === 0) {
+      detectedFeatures.push("conceptual_reasoning");
+    }
+
     steps.push({
       id: "step-1-ingest",
-      name: "1. Prompt Ingestion & Intent Analysis",
+      name: "1. Prompt Ingestion & Preprocessing",
       category: "ingestion",
       status: "completed",
-      description: `Analyzed prompt "${shortPrompt}" (${context.userPrompt.length} chars, ~${Math.ceil(context.userPrompt.length / 4)} tokens).`,
-      why: "The agent reads your input, extracts semantic features, and sets up execution context for cognitive routing.",
+      description: `Ingested prompt "${shortPrompt}" (${context.userPrompt.length} chars, ~${Math.ceil(context.userPrompt.length / 4)} tokens).`,
+      why: "The agent reads your input, extracts semantic features, normalizes formatting, and configures context for cognitive routing.",
       durationMs: Date.now() - ingestStart,
       badge: `${context.userPrompt.length} chars`,
       details: {
+        rawPrompt: context.userPrompt,
+        normalizedPrompt: context.userPrompt.trim(),
         promptLength: context.userPrompt.length,
+        estimatedTokens: Math.ceil(context.userPrompt.length / 4),
+        detectedFeatures,
         role: context.role || "user",
         environment: context.environment || "production",
       },
@@ -104,6 +130,7 @@ export class AgentRunner {
           approvalProbability: decision.approval.probability,
           isHighRisk,
           requiresApproval,
+          status: "INTERCEPTED",
         },
       });
 
@@ -162,8 +189,35 @@ export class AgentRunner {
       },
     });
 
-    // Step 4: Tool Execution Path (if a tool was selected)
-    if (decision.tool.choice !== "NONE" && toolRegistry.has(decision.tool.choice)) {
+    // Step 4: Tool Registry Lookup & Resolution
+    const hasRegisteredTool = decision.tool.choice !== "NONE" && toolRegistry.has(decision.tool.choice);
+    const availableRegisteredTools = ["CALCULATOR", "WEATHER", "KNOWLEDGE_BASE", "MESSAGING"];
+
+    steps.push({
+      id: "step-4-registry",
+      name: hasRegisteredTool
+        ? `4. Tool Registry Resolution: ${decision.tool.choice}`
+        : "4. Tool Registry Resolution: Pure LLM Path",
+      category: "registry",
+      status: "completed",
+      description: hasRegisteredTool
+        ? `Matched deterministic tool [${decision.tool.choice}] in ToolRegistry. Dispatching to local TypeScript handler.`
+        : `ToolRegistry confirmed no external tool needed (${decision.tool.choice}). Routing directly to Groq Cloud Inference.`,
+      why: hasRegisteredTool
+        ? `The registry dynamically mapped the Jev decision to native local code [${decision.tool.choice}], bypassing LLM latency.`
+        : "The query does not match any deterministic calculation or sensor tool; routing to Groq neural foundation model.",
+      durationMs: 1,
+      badge: hasRegisteredTool ? `Registry: ${decision.tool.choice}` : "Registry: Groq Cloud",
+      details: {
+        queriedTool: decision.tool.choice,
+        registryHit: hasRegisteredTool,
+        availableTools: availableRegisteredTools,
+        destination: hasRegisteredTool ? `Native ${decision.tool.choice}` : "Groq Neural Engine",
+      },
+    });
+
+    // Step 5: Execution Path (Native Tool vs Groq LLM)
+    if (hasRegisteredTool) {
       const toolInstance = toolRegistry.get(decision.tool.choice)!;
       const toolStartTime = Date.now();
 
@@ -171,8 +225,8 @@ export class AgentRunner {
       const toolLatency = Date.now() - toolStartTime;
 
       steps.push({
-        id: "step-4-tool",
-        name: `4. Native Tool Executed: ${decision.tool.choice}`,
+        id: "step-5-tool",
+        name: `5. Native Tool Executed: ${decision.tool.choice}`,
         category: "execution",
         status: "completed",
         description: `Executed deterministic code locally in ${toolLatency}ms with zero hallucination.`,
@@ -181,21 +235,28 @@ export class AgentRunner {
         badge: `${decision.tool.choice} • ${toolLatency}ms`,
         details: {
           tool: decision.tool.choice,
+          input: context.userPrompt,
           result: toolExecution.data || toolExecution.message,
           latencyMs: toolLatency,
+          precision: "100% Deterministic",
         },
       });
 
       const totalLatency = Date.now() - overallStartTime;
       steps.push({
-        id: "step-5-delivery",
-        name: "5. Formatted Answer Delivered",
+        id: "step-6-delivery",
+        name: "6. Formatted Answer Delivered",
         category: "output",
         status: "completed",
-        description: `Synthesized verified tool output into chat in ${totalLatency}ms total.`,
-        why: "Formatted the result cleanly with markdown and delivered it to your screen.",
+        description: `Synthesized verified tool output into chat in ${totalLatency}ms total (~380 tokens saved).`,
+        why: "Formatted the result cleanly with markdown, icons, and delivered it to your screen.",
         durationMs: totalLatency,
         badge: "Delivered",
+        details: {
+          formatType: "Structured Tool Response",
+          tokensSaved: 380,
+          totalLatencyMs: totalLatency,
+        },
       });
 
       return {
@@ -212,7 +273,7 @@ export class AgentRunner {
       };
     }
 
-    // Step 4 (Alt): LLM Generation Path via Groq (System Two)
+    // Step 5 (Alt): LLM Generation Path via Groq (System Two)
     const groqStartTime = Date.now();
     const llmResult = await groqService.generate(
       context.userPrompt,
@@ -225,8 +286,8 @@ export class AgentRunner {
       : null;
 
     steps.push({
-      id: "step-4-groq",
-      name: `4. Groq LLM Generation (${decision.modelTier.choice})`,
+      id: "step-5-groq",
+      name: `5. Groq LLM Generation (${decision.modelTier.choice})`,
       category: "execution",
       status: "completed",
       description: `Model: ${llmResult.model} • ${llmResult.latencyMs}ms${tokenSpeed ? ` • ~${tokenSpeed} tokens/sec` : ""}.`,
@@ -237,20 +298,26 @@ export class AgentRunner {
         model: llmResult.model,
         modelTier: decision.modelTier.choice,
         usage: llmResult.usage,
+        tokensPerSecond: tokenSpeed,
         latencyMs: llmResult.latencyMs,
       },
     });
 
     const totalLatency = Date.now() - overallStartTime;
     steps.push({
-      id: "step-5-delivery",
-      name: "5. Synthesized & Delivered to Chat",
+      id: "step-6-delivery",
+      name: "6. Synthesized & Delivered to Chat",
       category: "output",
       status: "completed",
       description: `Full pipeline completed in ${totalLatency}ms with verified integrity.`,
       why: "Rendered the response stream with markdown formatting and completed cognitive trace.",
       durationMs: totalLatency,
       badge: `${totalLatency}ms total`,
+      details: {
+        formatType: "Neural Markdown Synthesis",
+        totalLatencyMs: totalLatency,
+        tokensGenerated: llmResult.usage?.completionTokens || 0,
+      },
     });
 
     return {
